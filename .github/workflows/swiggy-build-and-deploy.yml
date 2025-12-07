@@ -37,4 +37,4 @@ jobs:
 
       # -------- Trivy Image Scan --------
       - name: Trivy Image Scan
-        run: trivy image docker.io/raunakrao/swiggy-clone-b:main-2a5a08b > trivyimage.txt
+        run: trivy image docker.io/raunakrao/swiggy-clone-b:latest > trivyimage.txt
