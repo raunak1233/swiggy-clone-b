@@ -29,15 +29,27 @@ jobs:
       - name: Docker Build and Push
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
-          image: raunakrao/swiggy-clone-b              # make sure repo exists in Docker Hub
+          image: raunakrao/swiggy-clone-b
           registry: docker.io
-          tags: latest, main-${{ github.sha }}         # tagging to allow trivy scan
+          tags: latest, main-${{ github.sha }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # -------- Trivy Image Scan --------
       - name: Trivy Image Scan
         run: trivy image docker.io/raunakrao/swiggy-clone-b:latest > trivyimage.txt
+
+
+  Deploy:
+    needs: build     # you wrote build-analyze-scan, but since job name is build, I kept "build"
+    runs-on: self-hosted
+
+    steps:
+      - name: Update kubeconfig
+        run: aws eks --region ap-northeast-1 update-kubeconfig --name virtualtechbox-cluster
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f deployment-and-service.yml
 
       - name: Send a Slack Notification
         if: always()
@@ -47,4 +59,4 @@ jobs:
           steps: ${{ toJson(steps) }}
           channel: '#github-actions'
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
