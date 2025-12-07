@@ -5,35 +5,36 @@ on:
     branches:
       - main
 
-
 jobs:
   build:
     name: Build
     runs-on: self-hosted
+
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # needed for Sonar analysis
+
+      # -------- Sonar Scan --------
       - uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
-      # - uses: sonarsource/sonarqube-quality-gate-action@master
-      #   timeout-minutes: 5
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      # -------- Trivy File Scan --------
       - name: Trivy File Scan
         run: trivy fs . > trivyfs.txt
-        
+
+      # -------- Docker Build & Push --------
       - name: Docker Build and Push
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
-             image: raunakrao/swiggy-clone-b
-             registry: docker.io
-             username: ${{ secrets.DOCKERHUB_USERNAME }}
-             password: ${{ secrets.DOCKERHUB_TOKEN }}
+          image: raunak1233/swiggy-clone-b              # make sure repo exists in Docker Hub
+          registry: docker.io
+          tags: latest, main-${{ github.sha }}         # tagging to allow trivy scan
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # -------- Trivy Image Scan --------
       - name: Trivy Image Scan
-        run: trivy image raunakrao/swiggy-clone-b > trivyimage.txt
+        run: trivy image docker.io/raunak1233/swiggy-clone-b:main-2a5a08b > trivyimage.txt
