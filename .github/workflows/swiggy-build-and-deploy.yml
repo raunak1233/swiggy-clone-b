@@ -29,7 +29,7 @@ jobs:
       - name: Docker Build and Push
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
-          image: raunak1233/swiggy-clone-b              # make sure repo exists in Docker Hub
+          image: raunakrao/swiggy-clone-b              # make sure repo exists in Docker Hub
           registry: docker.io
           tags: latest, main-${{ github.sha }}         # tagging to allow trivy scan
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -37,4 +37,4 @@ jobs:
 
       # -------- Trivy Image Scan --------
       - name: Trivy Image Scan
-        run: trivy image docker.io/raunak1233/swiggy-clone-b:main-2a5a08b > trivyimage.txt
+        run: trivy image docker.io/raunakrao/swiggy-clone-b:main-2a5a08b > trivyimage.txt
